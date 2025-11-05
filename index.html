@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Restaurant Order</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #fafafa;
+    margin: 0;
+    padding: 20px;
+  }
+  h1 {
+    text-align: center;
+    color: #333;
+  }
+  .menu {
+    display: grid;
+    gap: 15px;
+    margin: 20px auto;
+    max-width: 500px;
+  }
+  .item {
+    background: #fff;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  }
+  .item h3 { margin: 0; color: #222; }
+  .item p { margin: 5px 0; color: #666; }
+  .item input {
+    width: 70px;
+    padding: 5px;
+    margin-top: 5px;
+  }
+  button {
+    display: block;
+    width: 100%;
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 12px;
+    font-size: 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 20px;
+  }
+  button:hover {
+    background: #218838;
+  }
+  input[type="datetime-local"] {
+    width: 100%;
+    margin-top: 10px;
+    padding: 8px;
+  }
+</style>
+</head>
+<body>
+
+<h1>Restaurant Menu</h1>
+<div id="menu" class="menu"></div>
+
+<label for="datetime">Select delivery date and time:</label>
+<input type="datetime-local" id="datetime" required>
+
+<button onclick="sendOrder()">Send Order on WhatsApp</button>
+
+<script>
+// Replace this with your Google Sheet's CSV link
+const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTP0KJ_WjnHoYVec0BEQQkWw9ZmiQNquh-WapC5hAb6sSdqAmCOOIyeKG6UNG7R83w3zvS-0todyla3/pubhtml"
+  .replace("/pubhtml", "/gviz/tq?tqx=out:csv");
+
+const whatsappNumber = "+918319100020"; // e.g., 919876543210
+
+async function loadMenu() {
+  const res = await fetch(sheetURL);
+  const text = await res.text();
+  const rows = text.split("\n").map(r => r.split(","));
+  const menuContainer = document.getElementById("menu");
+  for (let i = 1; i < rows.length; i++) {
+    const [item, desc, price] = rows[i];
+    if (!item) continue;
+    const div = document.createElement("div");
+    div.className = "item";
+    div.innerHTML = `
+      <h3>${item}</h3>
+      <p>${desc}</p>
+      <p>₹${price}</p>
+      <label>Qty: <input type="number" min="1" value="1" id="qty-${i}"></label>
+    `;
+    div.dataset.name = item;
+    div.dataset.price = price;
+    menuContainer.appendChild(div);
+  }
+}
+
+function sendOrder() {
+  const items = document.querySelectorAll(".item");
+  let orderList = [];
+  items.forEach((it, i) => {
+    const qty = document.getElementById(`qty-${i+1}`);
+    if (qty && qty.value > 0) {
+      orderList.push(`${it.dataset.name} x${qty.value}`);
+    }
+  });
+  if (orderList.length === 0) {
+    alert("Please select at least one item.");
+    return;
+  }
+  const datetime = document.getElementById("datetime").value;
+  if (!datetime) {
+    alert("Please select delivery date and time.");
+    return;
+  }
+  const msg = `New Order:%0A${orderList.join("%0A")}%0A%0ADelivery: ${datetime}`;
+  window.open(`https://wa.me/${whatsappNumber}?text=${msg}`, "_blank");
+}
+
+loadMenu();
+</script>
+
+</body>
+</html>
