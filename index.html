@@ -8,17 +8,34 @@
 <style>
   body {
     margin:0;
-    font-family:Arial, sans-serif;
-    background:#fafafa;
+    font-family: "Georgia", serif;
+    background:#f4f1e8;
+    color:#3b1f17;
   }
 
   header {
-    background:#8B0000;
-    color:#fff;
-    padding:20px;
+    background:#7a0a0a;
+    color:#fce9c9;
+    padding:25px 15px;
     text-align:center;
-    font-size:24px;
+    font-size:28px;
     font-weight:bold;
+    letter-spacing:1px;
+  }
+
+  .sub {
+    margin-top:-8px;
+    text-align:center;
+    font-size:14px;
+    color:#fce9c9;
+    opacity:0.9;
+  }
+
+  .address {
+    text-align:center;
+    font-size:13px;
+    color:#fce9c9;
+    margin-top:4px;
   }
 
   .menu {
@@ -26,14 +43,15 @@
     max-width:650px;
     margin:auto;
     display:grid;
-    gap:18px;
+    gap:20px;
   }
 
   .item {
     background:#fff;
-    border-radius:12px;
-    box-shadow:0 3px 8px rgba(0,0,0,0.1);
+    border-radius:14px;
+    box-shadow:0 4px 10px rgba(0,0,0,0.15);
     overflow:hidden;
+    border:2px solid #d9c299;
   }
 
   .item img {
@@ -49,19 +67,21 @@
   .details h3 {
     margin:0;
     font-size:20px;
-    color:#8B0000;
+    color:#7a0a0a;
+    font-weight:bold;
   }
 
   .details p {
-    margin:5px 0;
-    color:#444;
+    margin:6px 0;
+    font-size:15px;
   }
 
   input[type=number] {
     width:70px;
     padding:6px;
-    border:1px solid #aaa;
+    border:1px solid #b89979;
     border-radius:6px;
+    background:#fbf7f2;
   }
 
   .order-box {
@@ -70,91 +90,64 @@
     padding:0 20px 40px;
   }
 
+  .total-box {
+    margin-top:15px;
+    padding:12px;
+    background:#fff7e6;
+    border:1px solid #e0c9a6;
+    border-radius:8px;
+    font-size:18px;
+    font-weight:bold;
+    color:#7a0a0a;
+  }
+
   input[type=datetime-local] {
     width:100%;
     padding:12px;
     margin-top:15px;
-    border:1px solid #ccc;
+    border:1px solid #b89979;
     border-radius:8px;
+    background:#fbf7f2;
     font-size:16px;
   }
 
   button {
     margin-top:20px;
     width:100%;
-    padding:14px;
+    padding:15px;
     font-size:18px;
-    background:#8B0000;
-    color:#fff;
+    background:#7a0a0a;
+    color:#fce9c9;
     border:none;
-    border-radius:8px;
+    border-radius:10px;
+    font-weight:bold;
     cursor:pointer;
+    letter-spacing:0.5px;
   }
 
-  button:hover {background:#a4161a;}
-
-  /* Popup box */
-  .popup-bg {
-    position:fixed;
-    top:0;left:0;right:0;bottom:0;
-    background:rgba(0,0,0,0.6);
-    display:none;
-    justify-content:center;
-    align-items:center;
-    z-index:9999;
-  }
-
-  .popup-box {
-    background:white;
-    padding:25px;
-    border-radius:12px;
-    width:85%;
-    max-width:350px;
-    text-align:center;
-    box-shadow:0 4px 10px rgba(0,0,0,0.2);
-  }
-
-  .popup-box h2 {
-    margin-top:0;
-    color:#8B0000;
-  }
-
-  .popup-box button {
-    background:#8B0000;
-    padding:10px 20px;
-    border-radius:8px;
-    border:none;
-    color:white;
-    font-size:16px;
-    cursor:pointer;
-    margin-top:15px;
-  }
+  button:hover {background:#8f1212;}
 </style>
 </head>
 
 <body>
 
 <header>Mumtaj Biryani</header>
+<div class="sub">Authentic Hyderabadi Taste | Freshly Cooked</div>
+<div class="address">Near Shadipur Main Road, Your City</div>
 
 <div id="menu" class="menu"></div>
 
 <div class="order-box">
-  <label>Select Delivery Date & Time:</label>
+  <div class="total-box">Total Amount: ₹<span id="total">0</span></div>
+
+  <label style="font-weight:bold;">Select Delivery Date & Time:</label>
   <input type="datetime-local" id="datetime">
-  <button onclick="sendOrder()">Send Order on WhatsApp</button>
-</div>
 
-<!-- Thank You Popup -->
-<div id="popup" class="popup-bg">
-  <div class="popup-box">
-    <h2>Thank You!</h2>
-    <p>Your order has been sent to Mumtaj Biryani. We will confirm shortly on WhatsApp.</p>
-    <button onclick="closePopup()">OK</button>
-  </div>
+  <button onclick="sendOrder()">Order on WhatsApp</button>
 </div>
-
 
 <script>
+// Google Sheet CSV link
 const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTP0KJ_WjnHoYVec0BEQQkWw9ZmiQNquh-WapC5hAb6sSdqAmCOOIyeKG6UNG7R83w3zvS-0todyla3/pub?output=csv";
 const whatsappNumber = "918319100020";
 
@@ -181,13 +174,34 @@ async function loadMenu() {
         <h3>${item}</h3>
         <p>${desc}</p>
         <p><strong>₹${price}</strong></p>
-        Qty: <input id="qty-${i}" type="number" value="0" min="0">
+        Qty: <input id="qty-${i}" type="number" min="0" value="0" data-price="${price}" oninput="updateTotal()">
       </div>
     `;
 
     box.dataset.name = item;
+    box.dataset.price = price;
+
     menuContainer.appendChild(box);
   }
+}
+
+// Total amount calculation
+function updateTotal() {
+  let total = 0;
+  const inputs = document.querySelectorAll("input[type=number]");
+  inputs.forEach(inp => {
+    const qty = Number(inp.value);
+    const price = Number(inp.dataset.price);
+    total += qty * price;
+  });
+  document.getElementById("total").textContent = total;
+}
+
+// Disable past date/time
+function setMinDateTime() {
+  const now = new Date();
+  now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+  document.getElementById("datetime").min = now.toISOString().slice(0,16);
 }
 
 function sendOrder() {
@@ -212,23 +226,16 @@ function sendOrder() {
     return;
   }
 
-  const message =
-    `New Order (Mumtaj Biryani):%0A${orderList.join("%0A")}%0A%0ADelivery: ${dt}`;
+  const total = document.getElementById("total").textContent;
 
-  // Open WhatsApp
-  window.open(`https://wa.me/${whatsappNumber}?text=${message}`, "_blank");
+  const msg =
+    `New Order (Mumtaj Biryani):%0A${orderList.join("%0A")}%0A%0ATotal: ₹${total}%0ADelivery: ${dt}`;
 
-  // Show popup AFTER opening WhatsApp
-  setTimeout(() => {
-    document.getElementById("popup").style.display = "flex";
-  }, 1000);
-}
-
-function closePopup() {
-  document.getElementById("popup").style.display = "none";
+  window.open(`https://wa.me/${whatsappNumber}?text=${msg}`, "_blank");
 }
 
 loadMenu();
+setMinDateTime();
 </script>
 
 </body>
