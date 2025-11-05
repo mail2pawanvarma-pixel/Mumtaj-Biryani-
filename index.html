@@ -24,18 +24,18 @@
   }
 
   .sub {
-    margin-top:-8px;
     text-align:center;
-    font-size:14px;
-    color:#fce9c9;
-    opacity:0.9;
+    font-size:15px;
+    margin-top:10px;
+    color:#7a0a0a;
+    font-weight:bold;
   }
 
   .address {
     text-align:center;
-    font-size:13px;
-    color:#fce9c9;
+    font-size:14px;
     margin-top:4px;
+    color:#7a0a0a;
   }
 
   .menu {
@@ -101,7 +101,7 @@
     color:#7a0a0a;
   }
 
-  input[type=datetime-local] {
+  input[type=datetime-local], select {
     width:100%;
     padding:12px;
     margin-top:15px;
@@ -132,12 +132,21 @@
 <body>
 
 <header>Mumtaj Biryani</header>
-<div class="sub">Authentic Hyderabadi Taste | Freshly Cooked</div>
+
+<div class="sub">Authentic Hyderabadi Taste</div>
 <div class="address">Near Shadipur Main Road, Your City</div>
 
 <div id="menu" class="menu"></div>
 
 <div class="order-box">
+
+  <label style="font-weight:bold;">Order Type:</label>
+  <select id="orderType">
+    <option value="Delivery">Delivery</option>
+    <option value="Pickup">Pickup</option>
+    <option value="Dine In">Dine In</option>
+  </select>
+
   <div class="total-box">Total Amount: ₹<span id="total">0</span></div>
 
   <label style="font-weight:bold;">Select Delivery Date & Time:</label>
@@ -147,7 +156,6 @@
 </div>
 
 <script>
-// Google Sheet CSV link
 const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTP0KJ_WjnHoYVec0BEQQkWw9ZmiQNquh-WapC5hAb6sSdqAmCOOIyeKG6UNG7R83w3zvS-0todyla3/pub?output=csv";
 const whatsappNumber = "918319100020";
 
@@ -160,7 +168,6 @@ async function loadMenu() {
 
   for (let i = 1; i < rows.length; i++) {
     let [item, desc, price, image] = rows[i];
-
     if (!item) continue;
 
     if (image) image = image.replace(/"/g, "").trim();
@@ -185,7 +192,6 @@ async function loadMenu() {
   }
 }
 
-// Total amount calculation
 function updateTotal() {
   let total = 0;
   const inputs = document.querySelectorAll("input[type=number]");
@@ -197,7 +203,6 @@ function updateTotal() {
   document.getElementById("total").textContent = total;
 }
 
-// Disable past date/time
 function setMinDateTime() {
   const now = new Date();
   now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
@@ -227,11 +232,17 @@ function sendOrder() {
   }
 
   const total = document.getElementById("total").textContent;
+  const orderType = document.getElementById("orderType").value;
 
   const msg =
-    `New Order (Mumtaj Biryani):%0A${orderList.join("%0A")}%0A%0ATotal: ₹${total}%0ADelivery: ${dt}`;
+`New Order (Mumtaj Biryani):
+${orderList.join("\n")}
 
-  window.open(`https://wa.me/${whatsappNumber}?text=${msg}`, "_blank");
+Order Type: ${orderType}
+Total Amount: ₹${total}
+Delivery Time: ${dt}`;
+
+  window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(msg)}`, "_blank");
 }
 
 loadMenu();
